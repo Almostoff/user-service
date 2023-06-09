@@ -1,0 +1,44 @@
+## GetUserByAccessToken
+GET http://localhost:8080/user/me/info
+Access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InQyMkBtYWlsLmNvbSIsIm5iZiI6IjIwMjMtMDYtMDlUMjI6MTU6MzkuMTAyMzExWiIsInR5cGUiOiJhY2Nlc3MiLCJ1dWlkIjoiODBmZmUyNzMtZjEzMC00MDdmLWEwZWEtMzNkOGVkNDQ0OGRhIn0.BBh_R7Azi-joJgw7FrSPDuEPIj1XbIRKmBAVXh3KqDA
+
+
+###
+## GetUserById
+GET http://localhost:8080/user/service/by_id/2
+content-type: application/json
+
+###
+## GetUserByNickName
+
+GET http://localhost:8080/user/testUser
+content-type: application/json
+
+###
+GET http://localhost:8080/user/service/get_client_nickname/2
+content-type: application/json
+
+###
+
+## Sign_UP from SSO
+POST http://localhost:8080/user/sign_up
+content-type: application/json
+UA: t1
+
+{
+  "ip": "142.1.2.3",
+  "email": "t1@mail.com",
+  "password": "tesTPass114*",
+  "phone": "+9999999999"
+}
+
+###
+## Sign_In
+POST http://localhost:8080/user/sign_in
+content-type: application/json
+UA: t22
+
+{
+  "email": "t22@mail.com",
+  "password": "tesTPass114*"
+}

@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  users_service:
+    ports:
+      - "11004:11004"
+    environment:
+      - AE_KEY
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: users_service

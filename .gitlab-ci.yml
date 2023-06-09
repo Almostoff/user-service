@@ -1,0 +1,18 @@
+image: docker/compose:latest
+
+stages:
+  - deploy
+
+before_script:
+  - docker info
+  - docker-compose version
+
+server:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /with ci/'
+      when: manual
+  script:
+    - docker-compose up -d --no-deps --build --remove-orphans
+    - docker image prune -f
+
