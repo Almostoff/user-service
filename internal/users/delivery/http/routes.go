@@ -12,12 +12,12 @@ func MapUsersRoutes(router fiber.Router, h *UsersHandler, mw *middleware.MDWMana
 	filegr := router.Group("/files", mw.CheckContentLengthForImage())
 	filegr.Post("/avatar", h.UpdateUserAvatar())
 	routerGroup := router.Group("/user", mw.CheckContentLength())
-	routerGroup.Post("/sign_up", h.ClientSignUp()) //email - token - uuid
-	routerGroup.Post("/sign_in", h.ClientSignIn()) //email - token - uuid
+	routerGroup.Post("/sign_up", h.ClientSignUp()) //done
+	routerGroup.Post("/sign_in", h.ClientSignIn()) //done
 	routerGroup.Post("/sign_in_tg", h.ClientSignInTG())
-	routerGroup.Get("/logout", h.Logout())
-	routerGroup.Get("/me/info", mw.UpdateUserLastActivity(), h.GetUserByAccessToken()) // token - email - user id ПОЧЕМУ ИСПОЛЬЗУЕТСЯ НИКНЕЙМ?
-	routerGroup.Post("/is_user_blocked", h.IsUserBlocked())                            // userid
+	routerGroup.Get("/logout", h.Logout())                                             //done
+	routerGroup.Get("/me/info", mw.UpdateUserLastActivity(), h.GetUserByAccessToken()) // done
+	routerGroup.Post("/is_user_blocked", h.IsUserBlocked())                            // done
 
 	routerGroup.Get("/get/rating", h.GetClientRating())                  // ctx - token - email - userID
 	routerGroup.Post("/get_clients_statistics", h.GetClientStatistics()) // ctx - token - email - userID
@@ -35,7 +35,7 @@ func MapUsersRoutes(router fiber.Router, h *UsersHandler, mw *middleware.MDWMana
 
 	servgr := routerGroup.Group("/service")
 	//mw.VerifySignatureMiddleware()) // в последнюю очередь
-	servgr.Post("/add_notice", h.AddNotice()) // user id
+	servgr.Post("/add_notice", h.AddNotice()) // done
 	servgr.Post("/verify/totp/with_id", h.VerifyTotpWithID())
 	servgr.Get("/create_client", h.CreateClientDND())                      // nickname
 	servgr.Get("/get_client_nickname/:client_id", h.GetUserNicknameByID()) // user id
@@ -51,7 +51,7 @@ func MapUsersRoutes(router fiber.Router, h *UsersHandler, mw *middleware.MDWMana
 		mw.UpdateUserLastActivity(),
 		mw.ValidateToken(),
 	)
-	chrg.Post("/bio", h.UpdateUserBio()) // ctx - token - email - id
+	chrg.Post("/bio", h.UpdateUserBio()) // done
 	chrg.Post("/nickname", h.UpdateUserNickName())
 	//chrg.Post("/avatar", h.UpdateUserAvatar())
 	chrg.Post("/password", h.ChangePassword())

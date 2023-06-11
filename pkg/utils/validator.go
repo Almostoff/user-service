@@ -59,7 +59,7 @@ func validateMinSize(field reflect.Value, tagValue string) error {
 		return nil
 	}
 	if int64(len(field.String())) < StringToInt(tagValue) {
-		return fmt.Errorf("%s exceeds maximum length of %s", field.String(), tagValue)
+		return fmt.Errorf("%s exceeds minimum length of %s", field.String(), tagValue)
 	}
 	return nil
 }

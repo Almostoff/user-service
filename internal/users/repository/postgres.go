@@ -181,7 +181,7 @@ func (p postgresRepository) ReadNotice(params *users.ReadNoticeParams) *cErrors.
 
 func (p postgresRepository) AddNotice(params *users.ADDNotice) *cErrors.ResponseErrorModel {
 	var result int64
-	err := p.db.QueryRow(`INSERT INTO user_db.public.notice (internal_id, client_id, type, is_read, create_time) 
+	err := p.db.QueryRow(`INSERT INTO notice (internal_id, client_id, type, is_read, create_time) 
 	VALUES ($1, $2, $3, $4, $5) RETURNING id`, params.InternalID, params.ClientID, params.Type, false, params.CreateTime).Scan(&result)
 	if err != nil {
 		return &cErrors.ResponseErrorModel{
@@ -191,7 +191,7 @@ func (p postgresRepository) AddNotice(params *users.ADDNotice) *cErrors.Response
 		}
 	}
 
-	_, err = p.db.Exec(`INSERT INTO user_db.public.notice_new_order (id, amount_to, amount_to_token, amount_from,
+	_, err = p.db.Exec(`INSERT INTO notice_new_order (id, amount_to, amount_to_token, amount_from,
                                              amount_from_token, nickname) 
 	VALUES ($1, $2, $3, $4, $5, $6)`,
 		result, params.AmountTo, params.AmountToToken, params.AmountFrom, params.AmountFromToken,
@@ -269,7 +269,7 @@ func (p postgresRepository) UpdateUserLastActivity(params *users.UpdateUserLastA
 }
 
 func (p postgresRepository) UpdateLastLogin(params *users.UpdateLastLoginParams) (bool, *cErrors.ResponseErrorModel) {
-	res, err := p.db.Exec("UPDATE user_db.public.users SET last_entry=$1, ip=$3 WHERE email=$2",
+	res, err := p.db.Exec("UPDATE users SET last_entry=$1, ip=$3 WHERE email=$2",
 		utils.GetEuropeTime(), params.Email, params.Ip)
 	if err != nil {
 		return false, &cErrors.ResponseErrorModel{
@@ -322,7 +322,6 @@ func (p postgresRepository) CreateClient(params *users.CreateClientParamsRepo) (
 		params.Language = "ru"
 	}
 	var lastInsertId int64
-	log.Println("Начинаю запись в БД!!: ", params)
 	err := p.db.QueryRow(`INSERT INTO user_db.public.users 
     (nickname, email, is_blocked, language, last_entry, registration_date, avatar, is_dnd) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
@@ -335,7 +334,6 @@ func (p postgresRepository) CreateClient(params *users.CreateClientParamsRepo) (
 		}
 	}
 	if lastInsertId == 0 {
-		fmt.Println(err)
 		return lastInsertId, &cErrors.ResponseErrorModel{
 			InternalCode: cErrors.CreateClient_RW_Repo_PG_Error,
 			StandartCode: cErrors.StatusInternalServerError,
@@ -417,7 +415,7 @@ func (p postgresRepository) GetUserByID(params *users.GetUserByIDParams) (*users
 
 func (p postgresRepository) IsUserBlocked(params *users.IsUserBlockedParams) (bool, *cErrors.ResponseErrorModel) {
 	var data []bool
-	err := p.db.Select(&data, "SELECT is_blocked FROM user_db.public.users WHERE id=$1", params.ClientID)
+	err := p.db.Select(&data, "SELECT is_blocked FROM users WHERE id=$1", params.ClientID)
 	if err != nil {
 		return false,
 			&cErrors.ResponseErrorModel{
@@ -426,7 +424,7 @@ func (p postgresRepository) IsUserBlocked(params *users.IsUserBlockedParams) (bo
 				Message:      Internal,
 			}
 	}
-	return data[0], nil
+	return data[0], &cErrors.ResponseErrorModel{}
 }
 
 func (p postgresRepository) ChangeDefaultUserLanguage(params *users.ChangeDefaultUserLanguageParams) (bool, *cErrors.ResponseErrorModel) {
@@ -549,8 +547,7 @@ func (p postgresRepository) UpdateUserNickName(params *users.UpdateUserNickNameP
 }
 
 func (p postgresRepository) UpdateUserBio(params *users.UpdateUserBioParams) (bool, *cErrors.ResponseErrorModel) {
-	fmt.Println(params.Bio)
-	res, err := p.db.Exec("UPDATE user_db.public.users SET bio=$1 WHERE id=$2",
+	res, err := p.db.Exec("UPDATE users SET bio=$1 WHERE id=$2",
 		params.Bio, params.ClientID)
 	if err != nil {
 		return false, &cErrors.ResponseErrorModel{
@@ -626,6 +623,29 @@ func (p postgresRepository) CreateClientUuid(params *users.CreateClientUidParams
 	return lastInsertUuid, &cErrors.ResponseErrorModel{}
 }
 
+func (p postgresRepository) GetUserIdByUuid(uuid string) (int64, *cErrors.ResponseErrorModel) {
+	var data []int64
+	err := p.db.Select(&data, "SELECT user_id FROM client_user WHERE client_uuid=$1", uuid)
+	if err != nil { // public_client_user это связывающая таблица
+		log.Println("zdez?", err)
+		return 0,
+			&cErrors.ResponseErrorModel{
+				InternalCode: cErrors.Clients_GetUserByID_Repo_PG_Error,
+				StandartCode: cErrors.StatusInternalServerError,
+				Message:      err.Error(),
+			}
+	}
+	if len(data) == 0 {
+		return 0,
+			&cErrors.ResponseErrorModel{
+				InternalCode: cErrors.Clients_GetUserByID_Repo_No_Such_User,
+				StandartCode: cErrors.StatusBadRequest,
+				Message:      "not found uuid",
+			}
+	}
+	return data[0], &cErrors.ResponseErrorModel{}
+}
+
 func (p postgresRepository) ClientUUID(params *users.ClientUuidByIDParams) (string, *cErrors.ResponseErrorModel) {
 	var data []string
 	err := p.db.Select(&data, "SELECT * FROM auth_db.public.client_user WHERE user_id=$1", params.UserId)
@@ -650,13 +670,11 @@ func (p postgresRepository) ClientUUID(params *users.ClientUuidByIDParams) (stri
 
 func (p postgresRepository) AddClientUser(params *users.AddClientUserParamsRepo) (string, *cErrors.ResponseErrorModel) {
 	var lastInsertUuid string
-	log.Println("Пробую писать в связующу таблицу?")
 	err := p.db.QueryRow(`INSERT INTO public.client_user 
     							(user_id, client_uuid) 
 								VALUES ($1, $2) RETURNING client_uuid`,
 		params.UserId, params.ClientUuid).Scan(&lastInsertUuid)
 	if err != nil {
-		log.Println("Несуществующая таблица, да?")
 		return "", &cErrors.ResponseErrorModel{
 			InternalCode: cErrors.AddClientUser_RW_Repo_PG_Error,
 			StandartCode: cErrors.StatusInternalServerError,
@@ -664,7 +682,6 @@ func (p postgresRepository) AddClientUser(params *users.AddClientUserParamsRepo)
 		}
 	}
 	if lastInsertUuid == "" {
-		fmt.Println(err)
 		return lastInsertUuid, &cErrors.ResponseErrorModel{
 			InternalCode: cErrors.AddClientUser_RW_Repo_PG_Error,
 			StandartCode: cErrors.StatusInternalServerError,

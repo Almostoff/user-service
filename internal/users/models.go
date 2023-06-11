@@ -298,6 +298,7 @@ type SignInSAParams struct {
 	Password string `json:"password"`
 	UA       string `json:"ua"`
 	Ip       string
+	Language string `json:"language"`
 }
 
 type SignUpSAParams struct {
@@ -545,8 +546,8 @@ type ResponseIsUserBlockedModel struct {
 	BlockedUntil string `json:"blocked_until"`
 }
 type ResponseClientSignUpModel struct {
-	RefreshToken string `json:"Refresh"`
 	AccessToken  string `json:"Access"`
+	RefreshToken string `json:"Refresh"`
 }
 type ResponseClientSignInModel struct {
 	RefreshToken string `json:"Refresh"`

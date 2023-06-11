@@ -15,7 +15,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"log"
 	"strings"
-	"sync"
 )
 
 const (
@@ -263,8 +262,18 @@ func (u *UsersUsecase) ConfirmKyc(params *users.HashKycConfirm) *users.ResponseC
 
 func (u *UsersUsecase) GetUserIDByAccessToken(params *users.GetUserIDByAccessTokenParams) *users.ResponseGetUserIDByAccessToken {
 	//email := u.decodeToken(params.Access)
-	email := u.decodeToken(params.Access)
-	if email == "" {
+	//if email == "" {
+	//	return &users.ResponseGetUserIDByAccessToken{
+	//		Data: nil,
+	//		Error: &cErrors.ResponseErrorModel{
+	//			InternalCode: cErrors.Clients_GetUserByAccessToken_FailedDecode,
+	//			StandartCode: cErrors.StatusInternalServerError,
+	//			Message:      Internal,
+	//		},
+	//	}
+	//}
+	uuid := u.decodeUuidToken(params.Access)
+	if uuid == "" {
 		return &users.ResponseGetUserIDByAccessToken{
 			Data: nil,
 			Error: &cErrors.ResponseErrorModel{
@@ -274,7 +283,18 @@ func (u *UsersUsecase) GetUserIDByAccessToken(params *users.GetUserIDByAccessTok
 			},
 		}
 	}
-	user, err := u.repo.GetUserByEmail(&users.GetUserByEmailParams{Email: email})
+	//user, err := u.repo.GetUserByEmail(&users.GetUserByEmailParams{Email: email})
+	//if err.InternalCode != 0 {
+	//	return &users.ResponseGetUserIDByAccessToken{
+	//		Data: nil,
+	//		Error: &cErrors.ResponseErrorModel{
+	//			InternalCode: cErrors.Clients_GetUserByAccessToken_FailedDecode,
+	//			StandartCode: cErrors.StatusInternalServerError,
+	//			Message:      Internal,
+	//		},
+	//	}
+	//}
+	uId, err := u.repo.GetUserIdByUuid(uuid)
 	if err.InternalCode != 0 {
 		return &users.ResponseGetUserIDByAccessToken{
 			Data: nil,
@@ -286,23 +306,12 @@ func (u *UsersUsecase) GetUserIDByAccessToken(params *users.GetUserIDByAccessTok
 		}
 	}
 	return &users.ResponseGetUserIDByAccessToken{
-		Data:  &users.ClientID{ClientID: user.ClientID},
+		Data:  &users.ClientID{ClientID: uId},
 		Error: &cErrors.ResponseErrorModel{},
 	}
 }
 
 func (u *UsersUsecase) GetClientUUIDByAccessToken(params *users.GetUserIDByAccessTokenParams) *users.ResponseGetUserUUIDByAccessToken {
-	//email := u.decodeToken(params.Access)
-	//if email == "" {
-	//	return &users.ResponseGetUserUUIDByAccessToken{
-	//		Data: nil,
-	//		Error: &cErrors.ResponseErrorModel{
-	//			InternalCode: cErrors.Clients_GetUserByAccessToken_FailedDecode,
-	//			StandartCode: cErrors.StatusInternalServerError,
-	//			Message:      Internal,
-	//		},
-	//	}
-	//}
 	uuid := u.decodeUuidToken(params.Access)
 	if uuid == "" {
 		return &users.ResponseGetUserUUIDByAccessToken{
@@ -314,8 +323,6 @@ func (u *UsersUsecase) GetClientUUIDByAccessToken(params *users.GetUserIDByAcces
 			},
 		}
 	}
-
-	log.Println("Check UUID from token", uuid)
 	//user, err := u.repo.GetUserByEmail(&users.GetUserByEmailParams{Email: email})
 	//if err.InternalCode != 0 {
 	//	return &users.ResponseGetUserUUIDByAccessToken{
@@ -522,8 +529,8 @@ func (u *UsersUsecase) decodeUuidToken(token string) string {
 }
 
 func (u *UsersUsecase) GetUserByNickName(params *users.GetUserByNickNameParams) *users.ResponseGetClientByNickName {
-	var wg sync.WaitGroup
-	wg.Add(3)
+	//var wg sync.WaitGroup
+	//wg.Add(3)
 	userUser, err := u.repo.GetUserByNickName(params)
 	if err.InternalCode != 0 {
 		return &users.ResponseGetClientByNickName{
@@ -531,56 +538,60 @@ func (u *UsersUsecase) GetUserByNickName(params *users.GetUserByNickNameParams) 
 			Error: err,
 		}
 	}
-	var userAuth *sso.ResponseGetClientVerification
-	go func() {
-		userAuth, _ = u.ssoSR.GetClientVerification(&users.ClientID{ClientID: userUser.ClientID})
-		wg.Done()
-	}()
+	//var userAuth *sso.ResponseGetClientVerification
+	//go func() {
+	//	userAuth, _ = u.ssoSR.GetClientVerification(&users.ClientID{ClientID: userUser.ClientID})
+	//	wg.Done()
+	//}()
+	//
+	//var userRate *rating.ResponseGetClientSRRating
+	//go func() {
+	//	userRate = u.ratingSR.GetClientSRRating(&rating.GetClientSRRatingParams{ClientID: userUser.ClientID})
+	//	wg.Done()
+	//}()
 
-	var userRate *rating.ResponseGetClientSRRating
-	go func() {
-		userRate = u.ratingSR.GetClientSRRating(&rating.GetClientSRRatingParams{ClientID: userUser.ClientID})
-		wg.Done()
-	}()
-
-	var userRate2 *rating.ResponseGetClientStatistics
-	go func() {
-		userRate2 = u.ratingSR.GetClientRatingForOrders(&rating.GetClientSRRatingParams{ClientID: userUser.ClientID})
-		if userRate2.Error.InternalCode != 0 {
-			userRate2.Data = &rating.Statistic{}
-		}
-		if userRate2.Data == nil {
-			userRate2.Data = &rating.Statistic{}
-		}
-
-		wg.Done()
-	}()
-	wg.Wait()
-	if userAuth.Error.InternalCode != 0 {
-		return &users.ResponseGetClientByNickName{
-			Data:  nil,
-			Error: err,
-		}
-	}
-	if userRate.Error.InternalCode != 0 {
-		return &users.ResponseGetClientByNickName{
-			Data:  nil,
-			Error: err,
-		}
-	}
+	//var userRate2 *rating.ResponseGetClientStatistics
+	//go func() {
+	//	userRate2 = u.ratingSR.GetClientRatingForOrders(&rating.GetClientSRRatingParams{ClientID: userUser.ClientID})
+	//	if userRate2.Error.InternalCode != 0 {
+	//		userRate2.Data = &rating.Statistic{}
+	//	}
+	//	if userRate2.Data == nil {
+	//		userRate2.Data = &rating.Statistic{}
+	//	}
+	//
+	//	wg.Done()
+	//}()
+	//wg.Wait()
+	//if userAuth.Error.InternalCode != 0 {
+	//	return &users.ResponseGetClientByNickName{
+	//		Data:  nil,
+	//		Error: err,
+	//	}
+	//}
+	//if userRate.Error.InternalCode != 0 {
+	//	return &users.ResponseGetClientByNickName{
+	//		Data:  nil,
+	//		Error: err,
+	//	}
+	//}
 	return &users.ResponseGetClientByNickName{
 		Data: &users.FullUserInfo{
-			NickName:               userUser.Nickname,
-			Avatar:                 userUser.Avatar,
-			RegistrationDate:       userUser.RegistrationDate,
-			LastVisit:              userUser.LastEntry,
-			LastActivity:           userUser.LastActivity,
-			BlockedUntil:           userUser.BlockedUntil,
-			Language:               userUser.Language,
-			IsBlocked:              userUser.IsBlocked,
-			UserStatistic:          userRate.Data,
-			UserStatisticForOrders: (*users.Statistic)(userRate2.Data),
-			Verification:           userAuth.Data,
+			NickName:         userUser.Nickname,
+			Avatar:           userUser.Avatar,
+			Bio:              *userUser.Bio,
+			Email:            userUser.Email,
+			RegistrationDate: userUser.RegistrationDate,
+			LastVisit:        userUser.LastEntry,
+			LastActivity:     userUser.LastActivity,
+			//Rating:
+			BlockedUntil: userUser.BlockedUntil,
+			Language:     userUser.Language,
+			IsBlocked:    userUser.IsBlocked,
+			Ip:           userUser.Ip,
+			//UserStatistic:          userRate.Data,
+			//UserStatisticForOrders: (*users.Statistic)(userRate2.Data),
+			//Verification:           userAuth.Data,
 		},
 		Error: err,
 	}
@@ -733,7 +744,6 @@ func (u *UsersUsecase) IsUserBlocked(params *users.IsUserBlockedParams) *users.R
 }
 
 func (u *UsersUsecase) ClientSignUp(params *users.SignUpParams) *users.ResponseClientSignUp {
-	log.Println("зашел в clientSignUp")
 	email := strings.ToLower(params.Email)
 	_, err := u.repo.GetUserByEmail(&users.GetUserByEmailParams{Email: email})
 	if err.InternalCode == 0 {
@@ -768,12 +778,11 @@ func (u *UsersUsecase) ClientSignUp(params *users.SignUpParams) *users.ResponseC
 
 	response, errSR := u.ssoSR.ClientSignUp(&users.SignUpParams{
 		Phone:    params.Phone,
-		IP:       "testIp",
+		IP:       params.IP,
 		Email:    email,
 		Password: params.Password,
 		UA:       params.UA,
 	})
-	log.Println("читаю ответ из ссо", response)
 	if errSR != nil {
 		return &users.ResponseClientSignUp{
 			Data: &users.ResponseClientSignUpModel{},
@@ -786,12 +795,9 @@ func (u *UsersUsecase) ClientSignUp(params *users.SignUpParams) *users.ResponseC
 		params.Language = "ru"
 	}
 
-	log.Println("check access token:", response.Data.AccessToken)
-
 	uuid := u.GetClientUUIDByAccessToken(&users.GetUserIDByAccessTokenParams{
 		Access: response.Data.AccessToken,
 	})
-	log.Println("перед записью в бд?")
 	userID := u.CreateClient(&users.CreateClientParams{IsDnD: false, Language: params.Language, Email: email})
 	if userID.Error.InternalCode != 0 {
 		return &users.ResponseClientSignUp{
@@ -799,7 +805,6 @@ func (u *UsersUsecase) ClientSignUp(params *users.SignUpParams) *users.ResponseC
 			Data:  nil,
 		}
 	}
-	log.Println("перед записью в связующую таблицу?")
 	_, err = u.repo.AddClientUser(&users.AddClientUserParamsRepo{
 		UserId:     userID.Data.ClientID,
 		ClientUuid: uuid.Data.ClientUUID,
@@ -821,11 +826,10 @@ func (u *UsersUsecase) ClientSignUp(params *users.SignUpParams) *users.ResponseC
 	//		Error: &cErrors.ResponseErrorModel{},
 	//	}
 	//}
-	fmt.Println("3", response)
 	return &users.ResponseClientSignUp{
 		Data: &users.ResponseClientSignUpModel{
-			RefreshToken: response.Data.RefreshToken,
 			AccessToken:  response.Data.AccessToken,
+			RefreshToken: response.Data.RefreshToken,
 		},
 		Error: &cErrors.ResponseErrorModel{},
 	}
@@ -864,9 +868,6 @@ func (u *UsersUsecase) ClientChangePassword(params *users.ChangeClientPasswordPa
 }
 
 func (u *UsersUsecase) ClientSignIn(params *users.SignInSAParams) *users.ResponseClientSignIn {
-	//userId := u.GetUserByEmail(&users.GetUserByEmailParams{
-	//	Email: params.Email,
-	//})
 	//uI, err := strconv.Atoi(userId.Data.Email) // строки не было
 	//clientUuid, err := u.repo.ClientUUID(&users.ClientUuidByIDParams{
 	//	UserId: int64(uI), // userId был 07.06 17:21
@@ -896,6 +897,24 @@ func (u *UsersUsecase) ClientSignIn(params *users.SignInSAParams) *users.Respons
 				StandartCode: cErrors.StatusInternalServerError,
 				Message:      cErr.Error(),
 			},
+		}
+	} else {
+		userId := u.GetUserByEmail(&users.GetUserByEmailParams{
+			Email: params.Email,
+		})
+		if userId.Error.InternalCode == 4008 {
+			if params.Language == "" {
+				params.Language = "ru"
+			}
+
+			uuid := u.GetClientUUIDByAccessToken(&users.GetUserIDByAccessTokenParams{
+				Access: response.Data.AccessToken,
+			})
+			userID := u.CreateClient(&users.CreateClientParams{IsDnD: false, Language: params.Language, Email: params.Email})
+			_, _ = u.repo.AddClientUser(&users.AddClientUserParamsRepo{
+				UserId:     userID.Data.ClientID,
+				ClientUuid: uuid.Data.ClientUUID,
+			})
 		}
 	}
 	return &users.ResponseClientSignIn{
@@ -996,7 +1015,6 @@ func (u *UsersUsecase) CreateClient(params *users.CreateClientParams) *users.Res
 	//	}
 	//	log.Println("застрял в цикле?")
 	//}
-	log.Println("Прошел цикл")
 	avatar := utils.GenerateAvatar(nickname)
 	time := utils.GetEuropeTime()
 	virginUser := &users.CreateClientParamsRepo{
@@ -1015,7 +1033,6 @@ func (u *UsersUsecase) CreateClient(params *users.CreateClientParams) *users.Res
 			Error: err,
 		}
 	}
-	log.Println("добавил юзера в бд?")
 	return &users.ResponseCreateClient{
 		Data:  &users.ResponseCreateClientModel{ClientID: userId, NickName: nickname},
 		Error: err,

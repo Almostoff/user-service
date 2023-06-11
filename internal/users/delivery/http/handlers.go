@@ -71,14 +71,11 @@ func (u *UsersHandler) ClientSignIn() fiber.Handler {
 			return ctx.SendStatus(fiber.StatusRequestEntityTooLarge)
 		}
 		params.UA = ctx.Get("ua")
-		if err := utils.ValidateStructSize(params); err != nil {
-			return ctx.SendStatus(fiber.StatusRequestEntityTooLarge)
-		}
 		if params.UA == "" {
 			return ctx.SendStatus(fiber.StatusUnauthorized)
 		}
 		data := u.userUC.ClientSignIn(&users.SignInSAParams{Email: params.Email, Nickname: params.Nickname,
-			Password: params.Password, UA: params.UA})
+			Password: params.Password, UA: params.UA, Ip: params.Ip})
 		if data.Error.InternalCode != 0 {
 			u.logger.Errorf("%s {%d}", data.Error.Message, data.Error.InternalCode)
 			params.Password = "********"
@@ -790,11 +787,10 @@ func (u *UsersHandler) UpdateUserBio() fiber.Handler {
 		if err := utils.ReadRequest(ctx, &params); err != nil {
 			return ctx.SendStatus(fiber.StatusBadRequest)
 		}
+		params.ClientID = UserID
 		if err := utils.ValidateStructSize(params); err != nil {
 			return ctx.SendStatus(fiber.StatusRequestEntityTooLarge)
 		}
-		params.ClientID = UserID
-		fmt.Println(params.Bio, "here")
 		data := u.userUC.UpdateUserBio(&params)
 		if data.Error.InternalCode != 0 {
 			u.logger.Errorf("%s {%d}", data.Error.Message, data.Error.InternalCode)

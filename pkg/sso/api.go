@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"log"
 	"strconv"
 )
 
@@ -24,8 +23,10 @@ type Client struct {
 func GetClient(params *GetClientParams) ServiceSso {
 	return &Client{
 		cfg: params.Config,
-		httpClient: resty.New().OnBeforeRequest(SignatureMiddleware(params)).
-			//EnableTrace().SetDebug(true).SetBaseURL(*params.BaseUrl),
+		//httpClient: resty.New().OnBeforeRequest(SignatureMiddleware(params)).
+		//	//EnableTrace().SetDebug(true).SetBaseURL(*params.BaseUrl),
+		//	EnableTrace().SetDebug(true).SetBaseURL("http://localhost:8181"),
+		httpClient: resty.New().
 			EnableTrace().SetDebug(true).SetBaseURL("http://localhost:8181"),
 	}
 }
@@ -375,7 +376,6 @@ func (c *Client) GetUserSessions(params *GetUserSessions) *ResponseGetUserSessio
 }
 
 func (c *Client) ClientSignUp(params *users.SignUpParams) (*users.ResponseClientSignUp, error) {
-	log.Println("делаю запрос в ссо на регистрацию: ", params)
 	var responseModel users.ResponseClientSignUp
 	client := resty.New()
 	url := "http://localhost:8181/sso/sign_up"
@@ -387,10 +387,7 @@ func (c *Client) ClientSignUp(params *users.SignUpParams) (*users.ResponseClient
 	//	SetResult(&responseModel).
 	//	SetBody(params).
 	//	Post(cConstants.SsoClientSignUp)
-	log.Println("Пробую здесь прочитать ответ: ", responseModel)
 	if err != nil {
-		log.Println("error here in clientSignUp")
-		fmt.Println(err)
 		return &users.ResponseClientSignUp{}, err
 	}
 	if response == nil {
@@ -423,7 +420,6 @@ func (c *Client) ClientSignIn(params *SignInSAParams) (*users.ResponseClientSign
 	if response == nil {
 		return &users.ResponseClientSignIn{}, errors.New("response is nil somehow")
 	}
-	fmt.Println(response)
 	statusCode := int64(response.StatusCode())
 	if statusCode != 200 {
 		return &users.ResponseClientSignIn{}, fmt.Errorf("status code {%d}", statusCode)
@@ -491,7 +487,8 @@ func (c *Client) Logout(params *LogoutParams) *ResponseLogout {
 	response, err := c.httpClient.R().
 		SetResult(&responseModel).
 		SetBody(params).
-		Post(cConstants.Logout)
+		//Post(cConstants.Logout)
+		Post("/sso/my/logout")
 	if err != nil {
 		fmt.Println(err)
 		return &ResponseLogout{

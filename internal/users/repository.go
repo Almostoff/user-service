@@ -36,6 +36,8 @@ type Repository interface {
 	//AddKycAttempt(params *ClientID) *cErrors.ResponseErrorModel
 	//GetKycAttempt(params *ClientID) *KycHistory
 
+	GetUserIdByUuid(uuid string) (int64, *cErrors.ResponseErrorModel)
+
 	CreateClientUuid(params *CreateClientUidParamsRepo) (string, *cErrors.ResponseErrorModel)
 	ClientUUID(params *ClientUuidByIDParams) (string, *cErrors.ResponseErrorModel)
 	AddClientUser(params *AddClientUserParamsRepo) (string, *cErrors.ResponseErrorModel)

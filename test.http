@@ -1,6 +1,31 @@
+## Get Info by Nickname
+GET http://localhost:8080/user/hidden-haze
+
+###
+## Change Bio
+POST http://localhost:8080/user/change/bio
+content-type: application/json
+Access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InQyQG1haWwuY29tIiwibmJmIjoiMjAyMy0wNi0xMVQyMDoxMzoxNi4zMTQwMTg0WiIsInR5cGUiOiJhY2Nlc3MiLCJ1dWlkIjoiNmIxZGY2NjMtM2E0OS00YzQxLWI1OWEtN2JhOGExZjcwMjNjIn0.R3XRXQ5ZJ35WuGXlSzlfwD2hSy5VZ6DJ6sv7BhG4kYU
+
+{
+  "new_bio": "biotfd3r"
+}
+
+###
+
+## User Is Blocked
+POST http://localhost:8080/user/is_user_blocked
+content-type: application/json
+
+{
+  "client_id": 1
+}
+
+###
+
 ## GetUserByAccessToken
 GET http://localhost:8080/user/me/info
-Access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InQyMkBtYWlsLmNvbSIsIm5iZiI6IjIwMjMtMDYtMDlUMjI6MTU6MzkuMTAyMzExWiIsInR5cGUiOiJhY2Nlc3MiLCJ1dWlkIjoiODBmZmUyNzMtZjEzMC00MDdmLWEwZWEtMzNkOGVkNDQ0OGRhIn0.BBh_R7Azi-joJgw7FrSPDuEPIj1XbIRKmBAVXh3KqDA
+Access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InQyQG1haWwuY29tIiwibmJmIjoiMjAyMy0wNi0xMVQyMDoxMzoxNi4zMTQwMTg0WiIsInR5cGUiOiJhY2Nlc3MiLCJ1dWlkIjoiNmIxZGY2NjMtM2E0OS00YzQxLWI1OWEtN2JhOGExZjcwMjNjIn0.R3XRXQ5ZJ35WuGXlSzlfwD2hSy5VZ6DJ6sv7BhG4kYU
 
 
 ###
@@ -10,7 +35,6 @@ content-type: application/json
 
 ###
 ## GetUserByNickName
-
 GET http://localhost:8080/user/testUser
 content-type: application/json
 
@@ -20,7 +44,7 @@ content-type: application/json
 
 ###
 
-## Sign_UP from SSO
+## Sign_UP for SSO
 POST http://localhost:8080/user/sign_up
 content-type: application/json
 UA: t1
@@ -33,12 +57,22 @@ UA: t1
 }
 
 ###
-## Sign_In
+## Sign_In from SSO
 POST http://localhost:8080/user/sign_in
 content-type: application/json
-UA: t22
+UA: t2
 
 {
-  "email": "t22@mail.com",
-  "password": "tesTPass114*"
+  "email": "t2@mail.com",
+  "password": "tesTPass114*",
+  "ip": "124.1.2.3"
 }
+
+###
+## Logout
+GET http://localhost:8080/user/logout
+content-type: application/json
+UA: t1
+Access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InQyQG1haWwuY29tIiwibmJmIjoiMjAyMy0wNi0xMVQyMDoxMzoxNi4zMTQwMTg0WiIsInR5cGUiOiJhY2Nlc3MiLCJ1dWlkIjoiNmIxZGY2NjMtM2E0OS00YzQxLWI1OWEtN2JhOGExZjcwMjNjIn0.R3XRXQ5ZJ35WuGXlSzlfwD2hSy5VZ6DJ6sv7BhG4kYU
+
+###
