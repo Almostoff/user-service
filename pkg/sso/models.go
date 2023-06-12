@@ -71,6 +71,7 @@ type VerifyTotpParams struct {
 }
 
 type LogoutParams struct {
+	Access     string `json:"access"`
 	ClientUUID string `json:"client_uuid" db:"client_uuid"`
 	UA         string `json:"ua"`
 }
@@ -233,8 +234,9 @@ type ResponseValidateAccess struct {
 }
 
 type ResponseLogout struct {
-	Error *cErrors.ResponseErrorModel `json:"error"`
-	Data  *ResponseSuccessModel       `json:"data"`
+	Error   *cErrors.ResponseErrorModel `json:"error"`
+	Data    *ResponseSuccessModel       `json:"data"`
+	Success *ResponseSuccessModel       `json:"success"`
 }
 
 type ResponseGetUserSessions struct {

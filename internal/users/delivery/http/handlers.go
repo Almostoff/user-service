@@ -13,6 +13,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -117,8 +118,10 @@ func (u *UsersHandler) ClientSignUp() fiber.Handler {
 func (u *UsersHandler) Logout() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userUUID := u.getUserUUID(ctx)
+		Access := ctx.Get("access")
 		UA := ctx.Get("ua")
-		data := u.ssoSR.Logout(&sso.LogoutParams{ClientUUID: userUUID, UA: UA})
+		data := u.ssoSR.Logout(&sso.LogoutParams{Access: Access, UA: UA})
+		log.Println("check data :", data)
 		if data.Error.InternalCode != 0 {
 			u.logger.Errorf("%s {%d}", data.Error.Message, data.Error.InternalCode)
 			go loggerService.GetInstance().DevLog(fmt.Sprintf("🙀Клиент id: %s не смог разлогиниться", userUUID), 1)

@@ -1150,11 +1150,11 @@ func (u *UsersUsecase) UpdateUserNickName(params *users.UpdateUserNickNameParams
 	}
 
 	cErr = u.repo.UpdateNicknameChanges(&users.ChangeNickname{ClientID: params.ClientID, OldNickname: user.Nickname})
-	if res.Error.InternalCode != 0 {
-		return &users.ResponseUpdateUserNickName{
-			Error: cErr,
-		}
-	}
+	//if res.Error.InternalCode != 0 {
+	//	return &users.ResponseUpdateUserNickName{
+	//		Error: cErr,
+	//	}
+	//}
 
 	return &users.ResponseUpdateUserNickName{
 		Data:  &users.ResponseChangeNicknameModel{Access: res.Data.Access},

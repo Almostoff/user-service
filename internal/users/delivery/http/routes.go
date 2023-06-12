@@ -51,11 +51,11 @@ func MapUsersRoutes(router fiber.Router, h *UsersHandler, mw *middleware.MDWMana
 		mw.UpdateUserLastActivity(),
 		mw.ValidateToken(),
 	)
-	chrg.Post("/bio", h.UpdateUserBio()) // done
-	chrg.Post("/nickname", h.UpdateUserNickName())
+	chrg.Post("/bio", h.UpdateUserBio())           // done
+	chrg.Post("/nickname", h.UpdateUserNickName()) // использует сторонний сервис
 	//chrg.Post("/avatar", h.UpdateUserAvatar())
 	chrg.Post("/password", h.ChangePassword())
-	chrg.Post("/language", h.ChangeLanguage())
+	chrg.Post("/language", h.ChangeLanguage()) // через таблицу lang
 	chrg.Post("/tg", h.ChangeTg())
 
 	rec := routerGroup.Group("/recover")
@@ -79,10 +79,10 @@ func MapUsersRoutes(router fiber.Router, h *UsersHandler, mw *middleware.MDWMana
 	sesrg.Get("/", h.GetUserSessions())
 	sesrg.Post("/stop_session", h.StopSession())
 
-	notrg := routerGroup.Group("/notice", mw.UpdateUserLastActivity())
+	notrg := routerGroup.Group("/notice", mw.UpdateUserLastActivity()) // пустые?
 	notrg.Get("/active", h.GetActiveNotice())
 	notrg.Delete("/read/:internal_id", h.ReadNotice())
 
 	routerGroup.Get("/info/all_reviews/:nickname", h.GetUserReviewsByNickname())
-	routerGroup.Get("/:nickname", h.GetUserByNickname())
+	routerGroup.Get("/:nickname", h.GetUserByNickname()) // done
 }

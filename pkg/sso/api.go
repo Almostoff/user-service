@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"log"
 	"strconv"
 )
 
@@ -264,7 +265,8 @@ func (c *Client) ChangeTg(params *ChangeTgParams) *ResponseChangeTg {
 
 func (c *Client) ClientChangePassword(params *users.ChangeClientPasswordParams) (*users.ResponseClientChangePassword, error) {
 	var responseModel users.ResponseClientChangePassword
-	response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post(cConstants.SsoClientChangePassword)
+	//response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post(cConstants.SsoClientChangePassword)
+	response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post("/sso/my/change/password")
 	if err != nil {
 		fmt.Println(err)
 		return &users.ResponseClientChangePassword{}, err
@@ -340,7 +342,9 @@ func (c *Client) GetClientPrivate(params *users.ClientID) *ResponseGetClientPriv
 
 func (c *Client) GetUserSessions(params *GetUserSessions) *ResponseGetUserSessions {
 	var responseModel ResponseGetUserSessions
-	response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post(cConstants.GetUserSessions)
+	log.Println("check: ", params)
+	//response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post(cConstants.GetUserSessions)
+	response, err := c.httpClient.R().SetResult(&responseModel).SetBody(params).Post("/sso/my/session/")
 	if err != nil {
 		fmt.Println(err)
 		return &ResponseGetUserSessions{
@@ -360,7 +364,6 @@ func (c *Client) GetUserSessions(params *GetUserSessions) *ResponseGetUserSessio
 			},
 		}
 	}
-	//fmt.Println(response)
 	statusCode := int64(response.StatusCode())
 	if statusCode != 200 {
 		return &ResponseGetUserSessions{
@@ -489,6 +492,7 @@ func (c *Client) Logout(params *LogoutParams) *ResponseLogout {
 		SetBody(params).
 		//Post(cConstants.Logout)
 		Post("/sso/my/logout")
+	err = json.Unmarshal(response.Body(), &responseModel)
 	if err != nil {
 		fmt.Println(err)
 		return &ResponseLogout{
@@ -518,7 +522,6 @@ func (c *Client) Logout(params *LogoutParams) *ResponseLogout {
 			},
 		}
 	}
-
 	return &responseModel
 }
 
